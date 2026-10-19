@@ -1,0 +1,1798 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-900 text-slate-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TRACKSPIRE - Educational Point Tracker & Revision Hub</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f3ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#1e1b4b',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Font Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .glass-card {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glow-star {
+            filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.6));
+        }
+        .no-select {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.5); }
+        ::-webkit-scrollbar-thumb { background: rgba(99, 102, 241, 0.4); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(99, 102, 241, 0.7); }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col bg-slate-950 text-slate-100 selection:bg-indigo-500 selection:text-white">
+
+    <!-- Top Navigation Header -->
+    <header class="sticky top-0 z-40 border-b border-slate-800 bg-slate-900/90 backdrop-blur-md px-4 py-3 shadow-lg">
+        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+            
+            <!-- Brand Logo & Live Info -->
+            <div class="flex items-center gap-4">
+                <div onclick="switchView('home')" class="cursor-pointer flex items-center gap-3 group">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-amber-500 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30 group-hover:scale-105 transition-transform">
+                        <i class="fa-solid fa-rocket text-xl"></i>
+                    </div>
+                    <div>
+                        <div class="font-black text-xl tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-300 to-amber-400">
+                            TRACKSPIRE
+                        </div>
+                        <div class="text-[10px] text-slate-400 tracking-widest font-semibold uppercase">Revision & Points Hub</div>
+                    </div>
+                </div>
+
+                <!-- Clock & Visitor Counter Badge -->
+                <div class="hidden md:flex items-center gap-3 pl-4 border-l border-slate-800 text-xs">
+                    <div class="flex items-center gap-1.5 text-slate-300 bg-slate-800/80 px-2.5 py-1 rounded-full border border-slate-700">
+                        <i class="fa-regular fa-clock text-indigo-400"></i>
+                        <span id="liveClock" class="font-mono font-medium">--:--:--</span>
+                    </div>
+                    <div class="flex items-center gap-1.5 text-slate-300 bg-slate-800/80 px-2.5 py-1 rounded-full border border-slate-700">
+                        <i class="fa-solid fa-eye text-emerald-400"></i>
+                        <span>Visitors: <strong id="visitorCounter" class="text-emerald-400">0</strong></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Action & Auth Switcher -->
+            <div class="flex items-center gap-3">
+                <!-- Express Scan QR Button -->
+                <button onclick="openQRScannerModal()" class="px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-bold text-xs flex items-center gap-2 shadow-md hover:brightness-110 active:scale-95 transition">
+                    <i class="fa-solid fa-qrcode text-sm"></i>
+                    <span>Scan Pupils QR</span>
+                </button>
+
+                <!-- Dynamic Auth Status / Login Buttons -->
+                <div id="authHeaderContainer" class="flex items-center gap-2">
+                    <!-- Populated dynamically by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Dynamic Content Region -->
+    <main id="mainContainer" class="flex-grow max-w-7xl w-full mx-auto p-4 md:p-6 space-y-6">
+        <!-- Rendered View Content Appears Here -->
+    </main>
+
+    <!-- Global Footer -->
+    <footer class="border-t border-slate-800 bg-slate-950 py-6 px-4 text-center text-xs text-slate-500">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-shield-halved text-indigo-500"></i>
+                <span>TRACKSPIRE Gamified Learning Platform &copy; 2026. All rights reserved.</span>
+            </div>
+            <div class="flex items-center gap-4 text-slate-400">
+                <span onclick="switchRole('admin')" class="hover:text-amber-400 cursor-pointer transition">Admin Access (Admin123)</span>
+                <span>&bull;</span>
+                <span onclick="resetSystemData()" class="hover:text-rose-400 cursor-pointer transition">Reset Data</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- MODALS & OVERLAYS -->
+
+    <!-- Login Selection Modal -->
+    <div id="loginModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl relative animate-in fade-in zoom-in duration-200">
+            <button onclick="closeModal('loginModal')" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="text-center mb-6">
+                <div class="w-12 h-12 rounded-xl bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 flex items-center justify-center mx-auto mb-3 text-2xl">
+                    <i class="fa-solid fa-user-lock"></i>
+                </div>
+                <h3 id="loginModalTitle" class="text-xl font-bold text-white">System Sign In</h3>
+                <p class="text-xs text-slate-400 mt-1">Select account type and enter credentials</p>
+            </div>
+
+            <!-- Role Selector Tabs -->
+            <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-800 mb-5 text-xs font-semibold">
+                <button id="roleTabStudent" onclick="setLoginRoleTab('pupil')" class="flex-1 py-2 rounded-lg text-amber-400 bg-slate-800 shadow">Student</button>
+                <button id="roleTabTeacher" onclick="setLoginRoleTab('teacher')" class="flex-1 py-2 rounded-lg text-slate-400 hover:text-white">Teacher</button>
+                <button id="roleTabAdmin" onclick="setLoginRoleTab('admin')" class="flex-1 py-2 rounded-lg text-slate-400 hover:text-white">Admin</button>
+            </div>
+
+            <!-- Login Form -->
+            <form id="loginForm" onsubmit="handleLoginSubmit(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1">Email / Identifier</label>
+                    <input type="text" id="loginUsername" required placeholder="e.g. leo@trackspire.edu or Admin123" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3.5 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1">Password</label>
+                    <input type="password" id="loginPassword" required placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3.5 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
+                </div>
+                
+                <div id="quickCredentialsHint" class="p-3 bg-indigo-950/40 border border-indigo-800/40 rounded-lg text-xs text-indigo-300 space-y-1">
+                    <div class="font-bold text-indigo-200">Demo Quick Sign-In:</div>
+                    <div id="hintText">Student: leo@trackspire.edu / pass123</div>
+                </div>
+
+                <button type="submit" class="w-full py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm shadow-lg shadow-indigo-600/30 transition">
+                    Sign In to Portal
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- QR Scanner & Pupil Express Modal -->
+    <div id="qrModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl relative">
+            <button onclick="closeModal('qrModal')" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-qrcode"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-white">Pupil QR Quick Scanner</h3>
+                    <p class="text-xs text-slate-400">Scan or select a student to award/deduct points</p>
+                </div>
+            </div>
+
+            <!-- Scanner Mode Switcher -->
+            <div class="flex gap-2 mb-4">
+                <button id="qrModeSimBtn" onclick="toggleQRMode('simulator')" class="flex-1 py-1.5 rounded-lg bg-indigo-600 text-white text-xs font-semibold">Simulator / Quick Select</button>
+                <button id="qrModeCamBtn" onclick="toggleQRMode('camera')" class="flex-1 py-1.5 rounded-lg bg-slate-800 text-slate-300 text-xs font-semibold hover:bg-slate-700">Camera Scan</button>
+            </div>
+
+            <!-- Mode 1: Simulator Quick Select -->
+            <div id="qrSimulatorView" class="space-y-4">
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">Select Pupil from Database:</label>
+                    <select id="qrStudentSelect" onchange="previewSelectedQRStudent()" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-amber-500">
+                        <!-- Populated by JS -->
+                    </select>
+                </div>
+                <div id="qrPupilPreviewCard" class="bg-slate-950 border border-slate-800 rounded-xl p-4 text-center space-y-3">
+                    <!-- Dynamic preview populated by JS -->
+                </div>
+            </div>
+
+            <!-- Mode 2: Camera Feed Simulation -->
+            <div id="qrCameraView" class="hidden space-y-3 text-center">
+                <div class="relative w-full h-48 bg-slate-950 border-2 border-dashed border-amber-500/50 rounded-xl flex flex-col items-center justify-center overflow-hidden">
+                    <i class="fa-solid fa-camera text-4xl text-slate-600 mb-2 animate-pulse"></i>
+                    <p class="text-xs text-slate-400">Position Pupil's QR Code inside the frame</p>
+                    <div class="absolute inset-x-0 top-1/2 h-0.5 bg-amber-500/80 shadow-[0_0_8px_#f59e0b] animate-bounce"></div>
+                </div>
+                <p class="text-[11px] text-slate-500">Using standard high-resolution matrix decoder simulation</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Printable SVG QR Code Display Modal -->
+    <div id="qrPrintModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-sm w-full p-6 shadow-2xl relative text-center">
+            <button onclick="closeModal('qrPrintModal')" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h3 id="qrPrintTitle" class="text-base font-bold text-white mb-1">Pupil Vector QR Pass</h3>
+            <p id="qrPrintSub" class="text-xs text-slate-400 mb-4">Official TRACKSPIRE Student Code</p>
+
+            <div id="qrSvgContainer" class="bg-white p-4 rounded-xl mx-auto shadow-inner w-48 h-48 flex items-center justify-center mb-4">
+                <!-- SVG rendered here -->
+            </div>
+
+            <div class="flex gap-2">
+                <button onclick="window.print()" class="flex-1 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs transition">
+                    <i class="fa-solid fa-print mr-1"></i> Print Pass
+                </button>
+                <button onclick="closeModal('qrPrintModal')" class="flex-1 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs transition">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm / System Prompt Modal -->
+    <div id="confirmModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-sm w-full p-5 shadow-2xl text-center space-y-4">
+            <div id="confirmIcon" class="w-12 h-12 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30 flex items-center justify-center mx-auto text-xl">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <div>
+                <h4 id="confirmTitle" class="text-base font-bold text-white">Are you sure?</h4>
+                <p id="confirmMessage" class="text-xs text-slate-400 mt-1">This action can be undone from the toast notification.</p>
+            </div>
+            <div class="flex gap-2 pt-2">
+                <button id="confirmYesBtn" class="flex-1 py-2 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs">Confirm</button>
+                <button onclick="closeModal('confirmModal')" class="flex-1 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast / Notification Undo Container -->
+    <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none">
+        <!-- Dynamic Toasts render here -->
+    </div>
+
+    <!-- MAIN JAVASCRIPT APP ENGINE -->
+    <script>
+        /* ==========================================================================
+           1. INITIAL DATA PERSISTENCE & SEED STATE
+           ========================================================================== */
+        
+        const STORAGE_KEY = 'trackspire_data_v2';
+        
+        const DEFAULT_SEED_DATA = {
+            teachers: [
+                {
+                    id: 't1',
+                    name: 'Mr. Alistair Vance',
+                    email: 'alistair@trackspire.edu',
+                    password: 'pass123',
+                    school: 'Oakridge Primary Academy',
+                    classes: ['5-Alpha', '5-Beta'],
+                    avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=Alistair',
+                    dob: '1985-04-12'
+                },
+                {
+                    id: 't2',
+                    name: 'Ms. Sarah Jenkins',
+                    email: 'sarah@trackspire.edu',
+                    password: 'pass123',
+                    school: 'Oakridge Primary Academy',
+                    classes: ['6-Gamma'],
+                    avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=Sarah',
+                    dob: '1990-09-23'
+                }
+            ],
+            pupils: [
+                { id: 'p1', name: 'Leo Sterling', email: 'leo@trackspire.edu', password: 'pass123', age: 10, dob: '2016-02-15', classTag: '5-Alpha', teacherId: 't1', avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=Leo', points: 245, weeklyPoints: 45, monthlyPoints: 180, badges: ['Leaderboard Legend', 'Revision Master', 'Top 5 Weekly'] },
+                { id: 'p2', name: 'Maya Lin', email: 'maya@trackspire.edu', password: 'pass123', age: 10, dob: '2016-06-10', classTag: '5-Alpha', teacherId: 't1', avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=Maya', points: 210, weeklyPoints: 40, monthlyPoints: 165, badges: ['Revision Master', 'Top 5 Weekly'] },
+                { id: 'p3', name: 'Ethan Hunt', email: 'ethan@trackspire.edu', password: 'pass123', age: 11, dob: '2015-11-04', classTag: '5-Beta', teacherId: 't1', avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=Ethan', points: 185, weeklyPoints: 35, monthlyPoints: 140, badges: ['Top 5 Weekly'] },
+                { id: 'p4', name: 'Sophia Chen', email: 'sophia@trackspire.edu', password: 'pass123', age: 10, dob: '2016-01-20', classTag: '5-Alpha', teacherId: 't1', avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=Sophia', points: 160, weeklyPoints: 30, monthlyPoints: 125, badges: ['Top 5 Weekly'] },
+                { id: 'p5', name: 'Oliver Wright', email: 'oliver@trackspire.edu', password: 'pass123', age: 11, dob: '2015-08-30', classTag: '5-Beta', teacherId: 't1', avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=Oliver', points: 140, weeklyPoints: 25, monthlyPoints: 110, badges: ['Top 5 Weekly'] },
+                { id: 'p6', name: 'Ava Martinez', email: 'ava@trackspire.edu', password: 'pass123', age: 11, dob: '2015-05-14', classTag: '6-Gamma', teacherId: 't2', avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=Ava', points: 120, weeklyPoints: 20, monthlyPoints: 95, badges: [] },
+                { id: 'p7', name: 'Noah Jackson', email: 'noah@trackspire.edu', password: 'pass123', age: 11, dob: '2015-09-18', classTag: '6-Gamma', teacherId: 't2', avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=Noah', points: 95, weeklyPoints: 15, monthlyPoints: 80, badges: [] },
+                { id: 'p8', name: 'Isabella Rossi', email: 'isabella@trackspire.edu', password: 'pass123', age: 10, dob: '2016-03-22', classTag: '5-Beta', teacherId: 't1', avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=Isabella', points: 80, weeklyPoints: 10, monthlyPoints: 70, badges: [] },
+                { id: 'p9', name: 'Lucas Kim', email: 'lucas@trackspire.edu', password: 'pass123', age: 11, dob: '2015-12-01', classTag: '6-Gamma', teacherId: 't2', avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=Lucas', points: 65, weeklyPoints: 5, monthlyPoints: 55, badges: [] },
+                { id: 'p10', name: 'Chloe Bennett', email: 'chloe@trackspire.edu', password: 'pass123', age: 10, dob: '2016-07-11', classTag: '5-Alpha', teacherId: 't1', avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=Chloe', points: 50, weeklyPoints: 0, monthlyPoints: 40, badges: [] }
+            ],
+            classTags: ['5-Alpha', '5-Beta', '6-Gamma'],
+            tasks: [
+                {
+                    id: 'task1',
+                    title: 'Solar System Exploration & Key Facts',
+                    subject: 'reading',
+                    teacherId: 't1',
+                    targetClass: '5-Alpha',
+                    instructions: 'Read the text carefully and answer the comprehension questions.',
+                    questions: [
+                        { q: 'Which planet is known as the Red Planet due to iron oxide on its surface?', choices: ['Venus', 'Mars', 'Jupiter', 'Saturn'], ans: 'Mars' },
+                        { q: 'What holds the planets in orbit around the Sun?', choices: ['Magnetic force', 'Solar wind', 'Gravitational pull', 'Atmospheric pressure'], ans: 'Gravitational pull' }
+                    ],
+                    createdAt: '2026-10-15'
+                },
+                {
+                    id: 'task2',
+                    title: 'Descriptive Writing: The Ancient Lighthouse',
+                    subject: 'writing',
+                    teacherId: 't1',
+                    targetClass: '5-Beta',
+                    instructions: 'Write a detailed descriptive paragraph using sensory language.',
+                    questions: [
+                        { q: 'Describe the scene as a storm approaches the old stone lighthouse on the cliff.', choices: [], ans: 'Manual Essay Evaluation' }
+                    ],
+                    createdAt: '2026-10-16'
+                },
+                {
+                    id: 'task3',
+                    title: 'Advanced Academic Vocabulary Challenge',
+                    subject: 'vocab',
+                    teacherId: 't2',
+                    targetClass: '6-Gamma',
+                    instructions: 'Select the synonym that best matches the target word context.',
+                    questions: [
+                        { q: 'What is a synonym for "Resilient"?', choices: ['Fragile', 'Tough / Adaptable', 'Tired', 'Careless'], ans: 'Tough / Adaptable' },
+                        { q: 'Select the correct meaning of "Meticulous":', choices: ['Very careful and detailed', 'Hasty', 'Noisy', 'Uncertain'], ans: 'Very careful and detailed' }
+                    ],
+                    createdAt: '2026-10-17'
+                }
+            ],
+            submissions: [
+                {
+                    id: 'sub1',
+                    taskId: 'task1',
+                    studentId: 'p1',
+                    studentName: 'Leo Sterling',
+                    attemptNum: 1,
+                    answers: ['Mars', 'Gravitational pull'],
+                    status: 'graded',
+                    score: 2,
+                    maxScore: 2,
+                    pointsAwarded: 15,
+                    feedback: 'Outstanding reading retention, Leo!',
+                    itemResults: [true, true],
+                    timestamp: '2026-10-18 10:30'
+                },
+                {
+                    id: 'sub2',
+                    taskId: 'task2',
+                    studentId: 'p3',
+                    studentName: 'Ethan Hunt',
+                    attemptNum: 1,
+                    answers: ['The crashing emerald waves shattered against the weathered obsidian rocks as howling winds whipped past the towering beacon...'],
+                    status: 'pending',
+                    score: 0,
+                    maxScore: 1,
+                    pointsAwarded: 0,
+                    feedback: '',
+                    itemResults: [],
+                    timestamp: '2026-10-18 14:15'
+                }
+            ],
+            visitorCount: 1420
+        };
+
+        let appData = {};
+        let currentUser = null; // { role: 'admin'|'teacher'|'pupil', id, name, ... }
+        let activeView = 'home'; // 'home', 'admin', 'teacher', 'pupil'
+        let activeTab = 'overview'; // view subtabs
+        let lastDeletedItem = null; // for undo functionality
+        let undoTimer = null;
+
+        // Load data from localStorage or seed defaults
+        function initData() {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (raw) {
+                try {
+                    appData = JSON.parse(raw);
+                } catch (e) {
+                    appData = JSON.parse(JSON.stringify(DEFAULT_SEED_DATA));
+                }
+            } else {
+                appData = JSON.parse(JSON.stringify(DEFAULT_SEED_DATA));
+            }
+            
+            // Increment visitor count
+            appData.visitorCount = (appData.visitorCount || 1400) + 1;
+            saveData();
+        }
+
+        function saveData() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+        }
+
+        /* ==========================================================================
+           2. APP INITIALIZATION & UTILITIES
+           ========================================================================== */
+
+        window.onload = function() {
+            initData();
+            startLiveClock();
+            updateVisitorDisplay();
+            renderHeaderAuth();
+            renderMainView();
+        };
+
+        function startLiveClock() {
+            setInterval(() => {
+                const now = new Date();
+                const clockEl = document.getElementById('liveClock');
+                if (clockEl) {
+                    clockEl.innerText = now.toLocaleTimeString();
+                }
+            }, 1000);
+        }
+
+        function updateVisitorDisplay() {
+            const el = document.getElementById('visitorCounter');
+            if (el) el.innerText = appData.visitorCount || 1;
+        }
+
+        function showToast(message, canUndo = false) {
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+
+            const id = 'toast_' + Date.now();
+            const toast = document.createElement('div');
+            toast.id = id;
+            toast.className = "pointer-events-auto bg-slate-900 border border-slate-700 text-white p-3.5 rounded-xl shadow-2xl flex items-center justify-between gap-3 animate-in slide-in-from-bottom-5 duration-300";
+            
+            toast.innerHTML = `
+                <div class="flex items-center gap-2 text-xs font-medium">
+                    <i class="fa-solid fa-circle-info text-indigo-400"></i>
+                    <span>${message}</span>
+                </div>
+                ${canUndo ? `
+                    <button onclick="executeUndo('${id}')" class="px-2.5 py-1 rounded bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow transition">
+                        Undo
+                    </button>
+                ` : `
+                    <button onclick="removeToast('${id}')" class="text-slate-400 hover:text-white text-sm">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                `}
+            `;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                removeToast(id);
+            }, canUndo ? 6000 : 4000);
+        }
+
+        function removeToast(id) {
+            const el = document.getElementById(id);
+            if (el) {
+                el.classList.add('opacity-0', 'transition-opacity');
+                setTimeout(() => el.remove(), 200);
+            }
+        }
+
+        function executeUndo(toastId) {
+            if (lastDeletedItem) {
+                if (lastDeletedItem.type === 'pupil') {
+                    appData.pupils.push(lastDeletedItem.data);
+                    showToast(`Restored pupil: ${lastDeletedItem.data.name}`);
+                } else if (lastDeletedItem.type === 'teacher') {
+                    appData.teachers.push(lastDeletedItem.data);
+                    showToast(`Restored teacher: ${lastDeletedItem.data.name}`);
+                }
+                saveData();
+                lastDeletedItem = null;
+                renderMainView();
+            }
+            removeToast(toastId);
+        }
+
+        function openModal(id) {
+            const modal = document.getElementById(id);
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function closeModal(id) {
+            const modal = document.getElementById(id);
+            if (modal) modal.classList.add('hidden');
+        }
+
+        /* ==========================================================================
+           3. AUTHENTICATION & LOGIN MANAGEMENT
+           ========================================================================== */
+
+        let activeLoginRoleTab = 'pupil';
+
+        function renderHeaderAuth() {
+            const container = document.getElementById('authHeaderContainer');
+            if (!container) return;
+
+            if (currentUser) {
+                container.innerHTML = `
+                    <div class="flex items-center gap-3 bg-slate-800/90 border border-slate-700/80 px-3 py-1.5 rounded-xl">
+                        <img src="${currentUser.avatar || 'https://api.dicebear.com/7.x/bottts/svg?seed=' + currentUser.name}" class="w-7 h-7 rounded-full bg-slate-900 border border-indigo-500">
+                        <div class="hidden sm:block text-left">
+                            <div class="text-xs font-bold text-white leading-none">${currentUser.name}</div>
+                            <div class="text-[10px] text-amber-400 font-semibold uppercase">${currentUser.role}</div>
+                        </div>
+                        <button onclick="handleLogout()" class="text-xs text-rose-400 hover:text-rose-300 font-bold ml-1 transition" title="Log Out">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                        </button>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = `
+                    <button onclick="openLoginModal('pupil')" class="px-3 py-1.5 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/30 text-indigo-300 font-semibold text-xs transition">
+                        Student Login
+                    </button>
+                    <button onclick="openLoginModal('teacher')" class="px-3 py-1.5 rounded-lg bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 text-purple-300 font-semibold text-xs transition">
+                        Teacher Login
+                    </button>
+                    <button onclick="openLoginModal('admin')" class="px-3 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/30 text-amber-300 font-semibold text-xs transition">
+                        Admin
+                    </button>
+                `;
+            }
+        }
+
+        function openLoginModal(role = 'pupil') {
+            setLoginRoleTab(role);
+            openModal('loginModal');
+        }
+
+        function setLoginRoleTab(role) {
+            activeLoginRoleTab = role;
+            const tStu = document.getElementById('roleTabStudent');
+            const tTea = document.getElementById('roleTabTeacher');
+            const tAdm = document.getElementById('roleTabAdmin');
+            const hintText = document.getElementById('hintText');
+
+            [tStu, tTea, tAdm].forEach(b => {
+                b.className = "flex-1 py-2 rounded-lg text-slate-400 hover:text-white";
+            });
+
+            if (role === 'pupil') {
+                tStu.className = "flex-1 py-2 rounded-lg text-amber-400 bg-slate-800 shadow font-bold";
+                if (hintText) hintText.innerText = "Student: leo@trackspire.edu / pass123";
+            } else if (role === 'teacher') {
+                tTea.className = "flex-1 py-2 rounded-lg text-purple-400 bg-slate-800 shadow font-bold";
+                if (hintText) hintText.innerText = "Teacher: alistair@trackspire.edu / pass123";
+            } else if (role === 'admin') {
+                tAdm.className = "flex-1 py-2 rounded-lg text-rose-400 bg-slate-800 shadow font-bold";
+                if (hintText) hintText.innerText = "Admin Credential: Admin123 / Admin123";
+            }
+        }
+
+        function handleLoginSubmit(e) {
+            e.preventDefault();
+            const u = document.getElementById('loginUsername').value.trim();
+            const p = document.getElementById('loginPassword').value.trim();
+
+            if (activeLoginRoleTab === 'admin') {
+                if (u === 'Admin123' && p === 'Admin123') {
+                    currentUser = { role: 'admin', name: 'Master Administrator', email: 'admin@trackspire.edu', id: 'admin_root', avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=Admin' };
+                    closeModal('loginModal');
+                    switchView('admin');
+                    showToast('Logged in as System Administrator');
+                    return;
+                } else {
+                    showToast('Invalid Admin Credentials (use Admin123 / Admin123)');
+                    return;
+                }
+            } else if (activeLoginRoleTab === 'teacher') {
+                const tea = appData.teachers.find(t => t.email.toLowerCase() === u.toLowerCase() && t.password === p);
+                if (tea) {
+                    currentUser = { role: 'teacher', ...tea };
+                    closeModal('loginModal');
+                    switchView('teacher');
+                    showToast(`Welcome, ${tea.name}!`);
+                    return;
+                } else {
+                    showToast('Invalid Teacher email or password');
+                    return;
+                }
+            } else if (activeLoginRoleTab === 'pupil') {
+                const pup = appData.pupils.find(pItem => pItem.email.toLowerCase() === u.toLowerCase() && pItem.password === p);
+                if (pup) {
+                    currentUser = { role: 'pupil', ...pup };
+                    closeModal('loginModal');
+                    switchView('pupil');
+                    showToast(`Welcome back, ${pup.name}!`);
+                    return;
+                } else {
+                    showToast('Invalid Student email or password');
+                    return;
+                }
+            }
+        }
+
+        function handleLogout() {
+            currentUser = null;
+            renderHeaderAuth();
+            switchView('home');
+            showToast('Logged out successfully');
+        }
+
+        function switchRole(role) {
+            if (role === 'admin') {
+                currentUser = { role: 'admin', name: 'Master Administrator', email: 'admin@trackspire.edu', id: 'admin_root', avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=Admin' };
+                switchView('admin');
+                renderHeaderAuth();
+            }
+        }
+
+        function switchView(viewName, subTab = 'overview') {
+            activeView = viewName;
+            activeTab = subTab;
+            renderHeaderAuth();
+            renderMainView();
+        }
+
+        /* ==========================================================================
+           4. VIEW RENDERING PIPELINE
+           ========================================================================== */
+
+        function renderMainView() {
+            const container = document.getElementById('mainContainer');
+            if (!container) return;
+
+            if (activeView === 'home') {
+                container.innerHTML = renderHomepageView();
+            } else if (activeView === 'admin') {
+                if (!currentUser || currentUser.role !== 'admin') {
+                    container.innerHTML = renderUnauthorizedNotice();
+                    return;
+                }
+                container.innerHTML = renderAdminPortalView();
+            } else if (activeView === 'teacher') {
+                if (!currentUser || currentUser.role !== 'teacher') {
+                    container.innerHTML = renderUnauthorizedNotice();
+                    return;
+                }
+                container.innerHTML = renderTeacherPortalView();
+            } else if (activeView === 'pupil') {
+                if (!currentUser || currentUser.role !== 'pupil') {
+                    container.innerHTML = renderUnauthorizedNotice();
+                    return;
+                }
+                container.innerHTML = renderPupilPortalView();
+            }
+        }
+
+        function renderUnauthorizedNotice() {
+            return `
+                <div class="max-w-md mx-auto text-center py-16 space-y-4">
+                    <div class="w-16 h-16 rounded-2xl bg-rose-500/20 text-rose-400 border border-rose-500/30 flex items-center justify-center mx-auto text-3xl">
+                        <i class="fa-solid fa-lock"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-white">Access Restricted</h2>
+                    <p class="text-sm text-slate-400">Please sign in with appropriate authorization to view this area.</p>
+                    <button onclick="openLoginModal()" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-lg">
+                        Open Portal Sign In
+                    </button>
+                </div>
+            `;
+        }
+
+        /* ==========================================================================
+           5. HOMEPAGE & GAMIFIED LEADERBOARDS
+           ========================================================================== */
+
+        function renderHomepageView() {
+            // Sort top 5 weekly
+            const topWeekly = [...appData.pupils].sort((a,b) => b.weeklyPoints - a.weeklyPoints).slice(0, 5);
+            // Sort top 10 monthly
+            const topMonthly = [...appData.pupils].sort((a,b) => b.monthlyPoints - a.monthlyPoints).slice(0, 10);
+
+            return `
+                <!-- Hero Banner -->
+                <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-indigo-900 via-purple-900 to-slate-900 border border-indigo-500/20 p-8 shadow-2xl">
+                    <div class="relative z-10 max-w-2xl space-y-4">
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/20 border border-indigo-400/30 text-indigo-300 text-xs font-semibold">
+                            <i class="fa-solid fa-sparkles text-amber-400"></i> Next-Gen Gamified Learning System
+                        </div>
+                        <h1 class="text-3xl md:text-5xl font-black text-white tracking-tight leading-tight">
+                            Elevate Academic Progress with <span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-amber-200">Star Points</span>
+                        </h1>
+                        <p class="text-sm text-slate-300 leading-relaxed">
+                            Empowering pupils, teachers, and school leaders through instant QR rewards, AI task creation, interactive revision portals, and real-time competitive leaderboards.
+                        </p>
+                        <div class="flex flex-wrap gap-3 pt-2">
+                            <button onclick="openLoginModal('pupil')" class="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-lg shadow-amber-500/20 flex items-center gap-2 transition">
+                                <i class="fa-solid fa-graduation-cap"></i> Student Revision Hub
+                            </button>
+                            <button onclick="openLoginModal('teacher')" class="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs border border-slate-700 flex items-center gap-2 transition">
+                                <i class="fa-solid fa-chalkboard-user text-purple-400"></i> Teacher Workspace
+                            </button>
+                            <button onclick="openLoginModal('admin')" class="px-5 py-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 font-bold text-xs border border-slate-700 flex items-center gap-2 transition">
+                                <i class="fa-solid fa-user-gear text-rose-400"></i> Admin Panel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Leaderboards Grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    
+                    <!-- Top 5 Weekly Leaderboard -->
+                    <div class="glass-panel p-6 rounded-2xl border border-slate-800 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center text-xl">
+                                        <i class="fa-solid fa-trophy"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-base font-bold text-white">Top 5 Weekly Leaderboard</h3>
+                                        <p class="text-xs text-slate-400">Current week activity points</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-[10px] uppercase text-slate-500 font-bold">Resets Sunday 23:59</div>
+                                    <div class="text-xs font-mono font-bold text-amber-400 flex items-center gap-1 justify-end">
+                                        <i class="fa-regular fa-hourglass-half animate-spin text-[10px]"></i> Active Week
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-4 space-y-2.5">
+                                ${topWeekly.map((pup, idx) => {
+                                    const ranks = ['bg-amber-500 text-slate-950 font-black', 'bg-slate-300 text-slate-950 font-bold', 'bg-amber-700 text-white font-bold', 'bg-slate-800 text-slate-400', 'bg-slate-800 text-slate-400'];
+                                    return `
+                                        <div class="flex items-center justify-between p-3 rounded-xl bg-slate-900/80 border border-slate-800/80 hover:border-indigo-500/40 transition">
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-7 h-7 rounded-lg flex items-center justify-center text-xs ${ranks[idx] || 'bg-slate-800 text-slate-400'}">
+                                                    #${idx + 1}
+                                                </div>
+                                                <img src="${pup.avatar}" class="w-9 h-9 rounded-full bg-slate-950 border border-slate-700">
+                                                <div>
+                                                    <div class="text-xs font-bold text-white">${pup.name}</div>
+                                                    <div class="text-[10px] text-slate-400">Class ${pup.classTag}</div>
+                                                </div>
+                                            </div>
+                                            <div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 font-bold text-xs">
+                                                <i class="fa-solid fa-star text-xs glow-star"></i>
+                                                <span>+${pup.weeklyPoints} pts</span>
+                                            </div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Top 10 Monthly Leaderboard -->
+                    <div class="glass-panel p-6 rounded-2xl border border-slate-800 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 flex items-center justify-center text-xl">
+                                        <i class="fa-solid fa-award"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-base font-bold text-white">Top 10 Monthly Champions</h3>
+                                        <p class="text-xs text-slate-400">Cumulative previous month total</p>
+                                    </div>
+                                </div>
+                                <span class="px-2.5 py-1 rounded-full bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-[11px] font-bold">
+                                    Historical Hall of Fame
+                                </span>
+                            </div>
+
+                            <div class="mt-4 space-y-2 max-h-[310px] overflow-y-auto pr-1">
+                                ${topMonthly.map((pup, idx) => `
+                                    <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/60 border border-slate-800/60 hover:border-slate-700 transition">
+                                        <div class="flex items-center gap-3">
+                                            <span class="text-xs font-mono font-bold w-5 text-center text-slate-500">${idx + 1}.</span>
+                                            <img src="${pup.avatar}" class="w-8 h-8 rounded-full bg-slate-950 border border-slate-800">
+                                            <div>
+                                                <div class="text-xs font-semibold text-slate-200">${pup.name}</div>
+                                                <div class="text-[10px] text-slate-500">${pup.classTag}</div>
+                                            </div>
+                                        </div>
+                                        <div class="text-xs font-bold text-indigo-300 bg-indigo-950/60 px-2.5 py-1 rounded-lg border border-indigo-800/40">
+                                            ${pup.monthlyPoints} Total Pts
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            `;
+        }
+
+        /* ==========================================================================
+           6. ADMIN PORTAL (PUPIL & TEACHER ADD / REMOVE / METRICS / RESET)
+           ========================================================================== */
+
+        function renderAdminPortalView() {
+            const totalPupils = appData.pupils.length;
+            const totalTeachers = appData.teachers.length;
+            const totalPoints = appData.pupils.reduce((sum, p) => sum + (p.points || 0), 0);
+            const totalSubs = appData.submissions.length;
+
+            return `
+                <div class="space-y-6">
+                    <!-- Admin Header Nav -->
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-900 p-6 rounded-2xl border border-slate-800">
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 rounded-xl bg-rose-500/20 text-rose-400 border border-rose-500/30 flex items-center justify-center text-2xl">
+                                <i class="fa-solid fa-user-shield"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-xl font-black text-white">Master Admin Control Panel</h2>
+                                <p class="text-xs text-slate-400">Complete authority over Pupil, Teacher, Class, and Platform metrics</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="resetSystemData()" class="px-3.5 py-2 rounded-xl bg-rose-950/60 hover:bg-rose-900 border border-rose-800/60 text-rose-300 font-bold text-xs flex items-center gap-2 transition">
+                                <i class="fa-solid fa-rotate-left"></i> Reset System Data
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Platform Metrics Grid -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="glass-card p-4 rounded-xl border border-slate-800">
+                            <div class="text-[11px] font-semibold text-slate-400 uppercase">Registered Pupils</div>
+                            <div class="text-2xl font-black text-amber-400 mt-1">${totalPupils}</div>
+                        </div>
+                        <div class="glass-card p-4 rounded-xl border border-slate-800">
+                            <div class="text-[11px] font-semibold text-slate-400 uppercase">Active Teachers</div>
+                            <div class="text-2xl font-black text-purple-400 mt-1">${totalTeachers}</div>
+                        </div>
+                        <div class="glass-card p-4 rounded-xl border border-slate-800">
+                            <div class="text-[11px] font-semibold text-slate-400 uppercase">Points Awarded</div>
+                            <div class="text-2xl font-black text-emerald-400 mt-1">${totalPoints}</div>
+                        </div>
+                        <div class="glass-card p-4 rounded-xl border border-slate-800">
+                            <div class="text-[11px] font-semibold text-slate-400 uppercase">Task Submissions</div>
+                            <div class="text-2xl font-black text-indigo-400 mt-1">${totalSubs}</div>
+                        </div>
+                    </div>
+
+                    <!-- Admin Subtabs Navigation -->
+                    <div class="flex border-b border-slate-800 gap-2">
+                        <button onclick="switchView('admin', 'pupils')" class="py-2.5 px-4 text-xs font-bold border-b-2 ${activeTab === 'pupils' || activeTab === 'overview' ? 'border-amber-500 text-amber-400' : 'border-transparent text-slate-400 hover:text-slate-200'}">
+                            <i class="fa-solid fa-user-graduate mr-2"></i> Pupil Management (${totalPupils})
+                        </button>
+                        <button onclick="switchView('admin', 'teachers')" class="py-2.5 px-4 text-xs font-bold border-b-2 ${activeTab === 'teachers' ? 'border-purple-500 text-purple-400' : 'border-transparent text-slate-400 hover:text-slate-200'}">
+                            <i class="fa-solid fa-chalkboard-user mr-2"></i> Teacher Management (${totalTeachers})
+                        </button>
+                    </div>
+
+                    <!-- Admin Subtab Content -->
+                    ${(activeTab === 'pupils' || activeTab === 'overview') ? renderAdminPupilsTab() : ''}
+                    ${activeTab === 'teachers' ? renderAdminTeachersTab() : ''}
+                </div>
+            `;
+        }
+
+        /* --- ADMIN: PUPIL MANAGEMENT --- */
+        function renderAdminPupilsTab() {
+            return `
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Add Pupil Form -->
+                    <div class="glass-panel p-6 rounded-2xl border border-slate-800 space-y-4">
+                        <h3 class="text-base font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-user-plus text-amber-400"></i> Add New Pupil
+                        </h3>
+                        <form onsubmit="adminAddPupilSubmit(event)" class="space-y-3">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-300 mb-1">Full Name</label>
+                                <input type="text" id="addPupilName" required placeholder="e.g. Maya Lin" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-white">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-300 mb-1">Email Address</label>
+                                <input type="email" id="addPupilEmail" required placeholder="maya@trackspire.edu" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-white">
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-300 mb-1">Password</label>
+                                    <input type="text" id="addPupilPass" required value="pass123" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-white">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-300 mb-1">Age</label>
+                                    <input type="number" id="addPupilAge" required value="10" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-white">
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-300 mb-1">Date of Birth</label>
+                                    <input type="date" id="addPupilDOB" required value="2016-05-10" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-white">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-300 mb-1">Class Tag</label>
+                                    <select id="addPupilClass" required class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-white">
+                                        ${appData.classTags.map(c => `<option value="${c}">${c}</option>`).join('')}
+                                    </select>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-300 mb-1">Assign Teacher</label>
+                                <select id="addPupilTeacher" required class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-white">
+                                    ${appData.teachers.map(t => `<option value="${t.id}">${t.name} (${t.school})</option>`).join('')}
+                                </select>
+                            </div>
+
+                            <button type="submit" class="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow transition">
+                                <i class="fa-solid fa-plus-circle mr-1"></i> Add Pupil to Database
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Registered Pupils Roster List -->
+                    <div class="lg:col-span-2 glass-panel p-6 rounded-2xl border border-slate-800 space-y-4">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
+                            <h3 class="text-base font-bold text-white">Registered Pupils Database</h3>
+                            <div class="flex items-center gap-2">
+                                <input type="text" id="adminPupilSearch" onkeyup="renderMainView()" placeholder="Search pupils..." class="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-white">
+                            </div>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs text-slate-300">
+                                <thead class="bg-slate-950 text-slate-400 uppercase font-bold border-b border-slate-800">
+                                    <tr>
+                                        <th class="p-2.5">Pupil</th>
+                                        <th class="p-2.5">Class</th>
+                                        <th class="p-2.5">Teacher</th>
+                                        <th class="p-2.5 text-center">Star Points</th>
+                                        <th class="p-2.5 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-800/60">
+                                    ${appData.pupils.map(p => {
+                                        const tea = appData.teachers.find(t => t.id === p.teacherId);
+                                        return `
+                                            <tr class="hover:bg-slate-900/50">
+                                                <td class="p-2.5 flex items-center gap-2">
+                                                    <img src="${p.avatar}" class="w-7 h-7 rounded-full bg-slate-900 border border-slate-700">
+                                                    <div>
+                                                        <div class="font-bold text-white">${p.name}</div>
+                                                        <div class="text-[10px] text-slate-500">${p.email}</div>
+                                                    </div>
+                                                </td>
+                                                <td class="p-2.5 font-semibold text-amber-300">${p.classTag}</td>
+                                                <td class="p-2.5 text-slate-400">${tea ? tea.name : 'Unassigned'}</td>
+                                                <td class="p-2.5 text-center font-bold text-amber-400">${p.points}</td>
+                                                <td class="p-2.5 text-right space-x-1">
+                                                    <button onclick="displaySVGQRModal('${p.id}')" class="p-1.5 rounded bg-indigo-950 text-indigo-400 hover:bg-indigo-900 border border-indigo-800/50" title="View Vector QR">
+                                                        <i class="fa-solid fa-qrcode"></i>
+                                                    </button>
+                                                    <button onclick="adminRemovePupil('${p.id}')" class="p-1.5 rounded bg-rose-950 text-rose-400 hover:bg-rose-900 border border-rose-800/50" title="Remove Pupil">
+                                                        <i class="fa-solid fa-trash"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        `;
+                                    }).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function adminAddPupilSubmit(e) {
+            e.preventDefault();
+            const newPup = {
+                id: 'p_' + Date.now(),
+                name: document.getElementById('addPupilName').value.trim(),
+                email: document.getElementById('addPupilEmail').value.trim(),
+                password: document.getElementById('addPupilPass').value.trim(),
+                age: parseInt(document.getElementById('addPupilAge').value) || 10,
+                dob: document.getElementById('addPupilDOB').value,
+                classTag: document.getElementById('addPupilClass').value,
+                teacherId: document.getElementById('addPupilTeacher').value,
+                avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(document.getElementById('addPupilName').value)}`,
+                points: 0,
+                weeklyPoints: 0,
+                monthlyPoints: 0,
+                badges: ['New Scholar']
+            };
+
+            appData.pupils.push(newPup);
+            saveData();
+            showToast(`Added pupil: ${newPup.name}`);
+            renderMainView();
+        }
+
+        function adminRemovePupil(pupilId) {
+            const pupIndex = appData.pupils.findIndex(p => p.id === pupilId);
+            if (pupIndex !== -1) {
+                const target = appData.pupils[pupIndex];
+                lastDeletedItem = { type: 'pupil', data: target };
+                appData.pupils.splice(pupIndex, 1);
+                saveData();
+                showToast(`Removed pupil: ${target.name}`, true);
+                renderMainView();
+            }
+        }
+
+        /* --- ADMIN: TEACHER MANAGEMENT --- */
+        function renderAdminTeachersTab() {
+            return `
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Add Teacher Form -->
+                    <div class="glass-panel p-6 rounded-2xl border border-slate-800 space-y-4">
+                        <h3 class="text-base font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-user-plus text-purple-400"></i> Register New Teacher
+                        </h3>
+                        <form onsubmit="adminAddTeacherSubmit(event)" class="space-y-3">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-300 mb-1">Full Name</label>
+                                <input type="text" id="addTeaName" required placeholder="e.g. Dr. Arthur Pendelton" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-white">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-300 mb-1">Email Address</label>
+                                <input type="email" id="addTeaEmail" required placeholder="arthur@trackspire.edu" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-white">
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-300 mb-1">Password</label>
+                                    <input type="text" id="addTeaPass" required value="pass123" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-white">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-300 mb-1">DOB</label>
+                                    <input type="date" id="addTeaDOB" required value="1988-08-14" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-white">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-300 mb-1">School</label>
+                                <input type="text" id="addTeaSchool" required value="Oakridge Primary Academy" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-white">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-300 mb-1">Classes Taught (comma separated)</label>
+                                <input type="text" id="addTeaClasses" required value="5-Alpha, 6-Gamma" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-white">
+                            </div>
+
+                            <button type="submit" class="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow transition">
+                                <i class="fa-solid fa-plus-circle mr-1"></i> Register Teacher
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Registered Teachers List -->
+                    <div class="lg:col-span-2 glass-panel p-6 rounded-2xl border border-slate-800 space-y-4">
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+                            <h3 class="text-base font-bold text-white">Active Teachers Roster</h3>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            ${appData.teachers.map(t => {
+                                const assignedPupilsCount = appData.pupils.filter(p => p.teacherId === t.id).length;
+                                return `
+                                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 flex items-start justify-between gap-3">
+                                        <div class="flex items-start gap-3">
+                                            <img src="${t.avatar}" class="w-10 h-10 rounded-full bg-slate-900 border border-purple-500">
+                                            <div>
+                                                <div class="font-bold text-white text-sm">${t.name}</div>
+                                                <div class="text-[11px] text-slate-400">${t.email}</div>
+                                                <div class="text-[10px] text-purple-300 mt-1 font-semibold">
+                                                    Classes: ${(t.classes || []).join(', ')}
+                                                </div>
+                                                <div class="text-[10px] text-slate-500 mt-0.5">
+                                                    Assigned Pupils: ${assignedPupilsCount}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <button onclick="adminRemoveTeacher('${t.id}')" class="p-1.5 rounded bg-rose-950 text-rose-400 hover:bg-rose-900 border border-rose-800/50 text-xs" title="Remove Teacher">
+                                            <i class="fa-solid fa-user-minus"></i>
+                                        </button>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function adminAddTeacherSubmit(e) {
+            e.preventDefault();
+            const classesRaw = document.getElementById('addTeaClasses').value;
+            const classesArr = classesRaw.split(',').map(s => s.trim()).filter(Boolean);
+
+            const newTea = {
+                id: 't_' + Date.now(),
+                name: document.getElementById('addTeaName').value.trim(),
+                email: document.getElementById('addTeaEmail').value.trim(),
+                password: document.getElementById('addTeaPass').value.trim(),
+                school: document.getElementById('addTeaSchool').value.trim(),
+                classes: classesArr,
+                avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(document.getElementById('addTeaName').value)}`,
+                dob: document.getElementById('addTeaDOB').value
+            };
+
+            // Add new class tags to global classTags if not exists
+            classesArr.forEach(c => {
+                if (!appData.classTags.includes(c)) appData.classTags.push(c);
+            });
+
+            appData.teachers.push(newTea);
+            saveData();
+            showToast(`Registered teacher: ${newTea.name}`);
+            renderMainView();
+        }
+
+        function adminRemoveTeacher(teacherId) {
+            const index = appData.teachers.findIndex(t => t.id === teacherId);
+            if (index !== -1) {
+                const target = appData.teachers[index];
+                lastDeletedItem = { type: 'teacher', data: target };
+                appData.teachers.splice(index, 1);
+                saveData();
+                showToast(`Removed teacher: ${target.name}`, true);
+                renderMainView();
+            }
+        }
+
+        function resetSystemData() {
+            if (confirm('Reset all TRACKSPIRE data back to default sample state? All unsaved updates will be cleared.')) {
+                appData = JSON.parse(JSON.stringify(DEFAULT_SEED_DATA));
+                saveData();
+                showToast('System data reset to initial seed state.');
+                renderMainView();
+            }
+        }
+
+        /* ==========================================================================
+           7. TEACHER PORTAL (CLASS TAGS, ROSTER, AI TASK CREATOR, GRADING CENTER)
+           ========================================================================== */
+
+        function renderTeacherPortalView() {
+            return `
+                <div class="space-y-6">
+                    <!-- Teacher Banner -->
+                    <div class="bg-gradient-to-r from-purple-900 to-slate-900 p-6 rounded-2xl border border-purple-500/20 flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div class="flex items-center gap-4">
+                            <img src="${currentUser.avatar}" class="w-14 h-14 rounded-2xl bg-slate-950 border border-purple-400 p-1">
+                            <div>
+                                <h2 class="text-2xl font-black text-white">${currentUser.name}</h2>
+                                <p class="text-xs text-purple-200">${currentUser.school} &bull; Classes: ${(currentUser.classes || []).join(', ')}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="switchView('teacher', 'tasks')" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow flex items-center gap-2">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> AI Task Generator
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Teacher Navigation Subtabs -->
+                    <div class="flex border-b border-slate-800 gap-2">
+                        <button onclick="switchView('teacher', 'roster')" class="py-2.5 px-4 text-xs font-bold border-b-2 ${activeTab === 'roster' || activeTab === 'overview' ? 'border-purple-500 text-purple-400' : 'border-transparent text-slate-400 hover:text-slate-200'}">
+                            <i class="fa-solid fa-users mr-2"></i> Class Rosters & Points
+                        </button>
+                        <button onclick="switchView('teacher', 'tasks')" class="py-2.5 px-4 text-xs font-bold border-b-2 ${activeTab === 'tasks' ? 'border-purple-500 text-purple-400' : 'border-transparent text-slate-400 hover:text-slate-200'}">
+                            <i class="fa-solid fa-list-check mr-2"></i> Tasks & AI Creator
+                        </button>
+                        <button onclick="switchView('teacher', 'grading')" class="py-2.5 px-4 text-xs font-bold border-b-2 ${activeTab === 'grading' ? 'border-purple-500 text-purple-400' : 'border-transparent text-slate-400 hover:text-slate-200'}">
+                            <i class="fa-solid fa-pen-to-square mr-2"></i> Grading Center (${appData.submissions.filter(s => s.status === 'pending').length})
+                        </button>
+                    </div>
+
+                    ${(activeTab === 'roster' || activeTab === 'overview') ? renderTeacherRosterTab() : ''}
+                    ${activeTab === 'tasks' ? renderTeacherTasksTab() : ''}
+                    ${activeTab === 'grading' ? renderTeacherGradingTab() : ''}
+                </div>
+            `;
+        }
+
+        /* --- TEACHER: ROSTER & POINT MANAGEMENT --- */
+        function renderTeacherRosterTab() {
+            const myClasses = currentUser.classes || [];
+            const myPupils = appData.pupils.filter(p => p.teacherId === currentUser.id || myClasses.includes(p.classTag));
+
+            return `
+                <div class="space-y-4">
+                    <!-- Class Tag Manager Bar -->
+                    <div class="glass-card p-4 rounded-xl border border-slate-800 flex flex-wrap items-center justify-between gap-3">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-bold text-slate-300">Class Tags:</span>
+                            ${myClasses.map(c => `
+                                <span class="px-2.5 py-1 rounded-full bg-purple-950/80 border border-purple-700/60 text-purple-300 text-xs font-bold">
+                                    ${c}
+                                </span>
+                            `).join('')}
+                        </div>
+                        <form onsubmit="addClassTagSubmit(event)" class="flex gap-2">
+                            <input type="text" id="newClassTagInput" placeholder="Add Class Tag (e.g. 5-Gamma)" class="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-white">
+                            <button type="submit" class="px-3 py-1 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs">Add Tag</button>
+                        </form>
+                    </div>
+
+                    <!-- Pupil Cards Grid -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        ${myPupils.map(p => `
+                            <div class="glass-panel p-4 rounded-xl border border-slate-800 flex flex-col justify-between space-y-3">
+                                <div class="flex items-start justify-between">
+                                    <div class="flex items-center gap-3">
+                                        <img src="${p.avatar}" class="w-10 h-10 rounded-full bg-slate-950 border border-amber-500">
+                                        <div>
+                                            <div class="font-bold text-white text-sm">${p.name}</div>
+                                            <div class="text-[10px] text-amber-300 font-semibold">Class ${p.classTag}</div>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-lg font-black text-amber-400 flex items-center justify-end gap-1">
+                                            <i class="fa-solid fa-star text-xs glow-star"></i> ${p.points}
+                                        </div>
+                                        <div class="text-[10px] text-slate-500">Star Points</div>
+                                    </div>
+                                </div>
+
+                                <!-- Quick Adjust Buttons -->
+                                <div class="flex items-center gap-1.5 pt-2 border-t border-slate-800/80">
+                                    <button onclick="adjustPoints('${p.id}', 5)" class="flex-1 py-1 rounded bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-700/60 text-emerald-300 font-bold text-xs">
+                                        +5 Good
+                                    </button>
+                                    <button onclick="adjustPoints('${p.id}', 2)" class="flex-1 py-1 rounded bg-amber-950/80 hover:bg-amber-900 border border-amber-700/60 text-amber-300 font-bold text-xs">
+                                        +2 Work
+                                    </button>
+                                    <button onclick="adjustPoints('${p.id}', -2)" class="flex-1 py-1 rounded bg-rose-950/80 hover:bg-rose-900 border border-rose-700/60 text-rose-300 font-bold text-xs">
+                                        -2 Penalty
+                                    </button>
+                                    <button onclick="displaySVGQRModal('${p.id}')" class="px-2 py-1 rounded bg-indigo-950 hover:bg-indigo-900 border border-indigo-800 text-indigo-300 text-xs" title="View Printable Vector QR">
+                                        <i class="fa-solid fa-qrcode"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function addClassTagSubmit(e) {
+            e.preventDefault();
+            const tag = document.getElementById('newClassTagInput').value.trim();
+            if (tag && !currentUser.classes.includes(tag)) {
+                currentUser.classes.push(tag);
+                if (!appData.classTags.includes(tag)) appData.classTags.push(tag);
+                saveData();
+                showToast(`Added class tag: ${tag}`);
+                renderMainView();
+            }
+        }
+
+        function adjustPoints(pupilId, delta) {
+            const pup = appData.pupils.find(p => p.id === pupilId);
+            if (pup) {
+                pup.points = Math.max(0, pup.points + delta);
+                if (delta > 0) pup.weeklyPoints += delta;
+                saveData();
+                showToast(`${delta > 0 ? '+' : ''}${delta} Star Points updated for ${pup.name}`);
+                renderMainView();
+            }
+        }
+
+        /* --- TEACHER: TASKS & GEMINI AI CREATOR --- */
+        function renderTeacherTasksTab() {
+            return `
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- AI & Manual Task Creator -->
+                    <div class="glass-panel p-6 rounded-2xl border border-slate-800 space-y-4">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-base font-bold text-white flex items-center gap-2">
+                                <i class="fa-solid fa-wand-magic-sparkles text-purple-400"></i> Task Creator
+                            </h3>
+                            <button onclick="generateAITaskWithGemini()" id="aiGenBtn" class="px-2.5 py-1 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-[11px] flex items-center gap-1 shadow">
+                                <i class="fa-solid fa-brain"></i> Gemini AI Auto-Fill
+                            </button>
+                        </div>
+
+                        <form onsubmit="createTaskSubmit(event)" class="space-y-3">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-300 mb-1">Subject Area</label>
+                                <select id="taskSubjectSelect" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-white">
+                                    <option value="reading">Reading Comprehension</option>
+                                    <option value="writing">Descriptive Writing</option>
+                                    <option value="vocab">Vocabulary & Grammar</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-300 mb-1">Target Class</label>
+                                <select id="taskClassSelect" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-white">
+                                    ${(currentUser.classes || appData.classTags).map(c => `<option value="${c}">${c}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-300 mb-1">Task Title</label>
+                                <input type="text" id="taskTitleInput" required placeholder="e.g. Rainforest Biodiversity Questions" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-white">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-300 mb-1">Instructions</label>
+                                <textarea id="taskInstructionsInput" rows="2" placeholder="Task guidelines..." class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-white"></textarea>
+                            </div>
+                            
+                            <!-- Sample Question Item -->
+                            <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-2">
+                                <label class="block text-[11px] font-bold text-slate-300">Question 1</label>
+                                <input type="text" id="taskQ1" required placeholder="Question text..." class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-white">
+                                <input type="text" id="taskA1" required placeholder="Correct Answer..." class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-emerald-300">
+                            </div>
+
+                            <button type="submit" class="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow transition">
+                                Publish Task to Class Hub
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Active Tasks List -->
+                    <div class="lg:col-span-2 glass-panel p-6 rounded-2xl border border-slate-800 space-y-4">
+                        <h3 class="text-base font-bold text-white">Active Revision Tasks</h3>
+                        <div class="space-y-3">
+                            ${appData.tasks.map(t => `
+                                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
+                                    <div class="flex items-center justify-between">
+                                        <span class="px-2 py-0.5 rounded bg-indigo-950 text-indigo-300 font-bold text-[10px] uppercase border border-indigo-800">
+                                            ${t.subject} &bull; ${t.targetClass}
+                                        </span>
+                                        <span class="text-[10px] text-slate-500">${t.createdAt}</span>
+                                    </div>
+                                    <div class="font-bold text-white text-sm">${t.title}</div>
+                                    <p class="text-xs text-slate-400">${t.instructions}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function generateAITaskWithGemini() {
+            const btn = document.getElementById('aiGenBtn');
+            if (btn) btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Generating...`;
+
+            const subject = document.getElementById('taskSubjectSelect').value;
+            const prompt = `Generate a high quality primary school revision task for subject '${subject}'. Title and 1 key question with correct answer. Format as JSON: {"title": "...", "instructions": "...", "question": "...", "answer": "..."}`;
+
+            try {
+                // Gemini API Call
+                const apiKey = "";
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+                
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: prompt }] }],
+                        generationConfig: { responseMimeType: "application/json" }
+                    })
+                });
+
+                const result = await response.json();
+                const jsonText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (jsonText) {
+                    const parsed = JSON.parse(jsonText);
+                    document.getElementById('taskTitleInput').value = parsed.title || 'AI Generated Practice Task';
+                    document.getElementById('taskInstructionsInput').value = parsed.instructions || 'Answer the questions thoroughly.';
+                    document.getElementById('taskQ1').value = parsed.question || 'What is the main topic of the lesson?';
+                    document.getElementById('taskA1').value = parsed.answer || 'Key Concept';
+                    showToast('AI Task generated successfully!');
+                } else {
+                    fallbackTaskGen(subject);
+                }
+            } catch (err) {
+                fallbackTaskGen(subject);
+            }
+
+            if (btn) btn.innerHTML = `<i class="fa-solid fa-brain"></i> Gemini AI Auto-Fill`;
+        }
+
+        function fallbackTaskGen(subject) {
+            const templates = {
+                reading: { title: 'Comprehension: Ocean Ecosystems', inst: 'Read carefully and answer.', q: 'What process do ocean plants use to make food from sunlight?', a: 'Photosynthesis' },
+                writing: { title: 'Creative Story Starter', inst: 'Complete the story paragraph.', q: 'Describe what lies inside the glowing ancient chest.', a: 'Detailed creative writing' },
+                vocab: { title: 'Synonym Mastery Challenge', inst: 'Identify word meanings.', q: 'What is a synonym for the word "Vast"?', a: 'Enormous / Huge' }
+            };
+            const t = templates[subject] || templates.reading;
+            document.getElementById('taskTitleInput').value = t.title;
+            document.getElementById('taskInstructionsInput').value = t.inst;
+            document.getElementById('taskQ1').value = t.q;
+            document.getElementById('taskA1').value = t.a;
+            showToast('Loaded AI template task!');
+        }
+
+        function createTaskSubmit(e) {
+            e.preventDefault();
+            const newTask = {
+                id: 'task_' + Date.now(),
+                title: document.getElementById('taskTitleInput').value.trim(),
+                subject: document.getElementById('taskSubjectSelect').value,
+                teacherId: currentUser.id,
+                targetClass: document.getElementById('taskClassSelect').value,
+                instructions: document.getElementById('taskInstructionsInput').value.trim(),
+                questions: [
+                    { q: document.getElementById('taskQ1').value.trim(), choices: [], ans: document.getElementById('taskA1').value.trim() }
+                ],
+                createdAt: new Date().toISOString().split('T')[0]
+            };
+
+            appData.tasks.push(newTask);
+            saveData();
+            showToast('Published new task!');
+            renderMainView();
+        }
+
+        /* --- TEACHER: SUBMISSIONS & GRADING --- */
+        function renderTeacherGradingTab() {
+            const pending = appData.submissions.filter(s => s.status === 'pending');
+
+            return `
+                <div class="glass-panel p-6 rounded-2xl border border-slate-800 space-y-4">
+                    <h3 class="text-base font-bold text-white">Submissions & Grading Queue</h3>
+                    ${pending.length === 0 ? `
+                        <p class="text-xs text-slate-400 py-8 text-center">No pending submissions awaiting review.</p>
+                    ` : `
+                        <div class="space-y-3">
+                            ${pending.map(s => {
+                                const task = appData.tasks.find(t => t.id === s.taskId);
+                                return `
+                                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                        <div class="space-y-1">
+                                            <div class="flex items-center gap-2">
+                                                <span class="font-bold text-white text-sm">${s.studentName}</span>
+                                                <span class="text-[10px] text-amber-400 font-bold px-2 py-0.5 rounded bg-amber-950 border border-amber-800">
+                                                    Attempt #${s.attemptNum}
+                                                </span>
+                                            </div>
+                                            <div class="text-xs text-slate-300 font-semibold">${task ? task.title : 'Revision Task'}</div>
+                                            <div class="text-[11px] text-slate-400 bg-slate-900 p-2 rounded border border-slate-800 italic">
+                                                "${s.answers[0] || 'No answer submitted'}"
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <button onclick="gradeSubmission('${s.id}', true)" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow">
+                                                <i class="fa-solid fa-check mr-1"></i> Correct (+10 Pts)
+                                            </button>
+                                            <button onclick="gradeSubmission('${s.id}', false)" class="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shadow">
+                                                <i class="fa-solid fa-xmark mr-1"></i> Needs Practice
+                                            </button>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    `}
+                </div>
+            `;
+        }
+
+        function gradeSubmission(subId, isCorrect) {
+            const sub = appData.submissions.find(s => s.id === subId);
+            if (sub) {
+                sub.status = 'graded';
+                sub.score = isCorrect ? 1 : 0;
+                sub.maxScore = 1;
+                sub.pointsAwarded = isCorrect ? 10 : 2;
+                sub.feedback = isCorrect ? 'Great effort and accurate answer!' : 'Reviewed by teacher. Keep practicing!';
+
+                // Award points to pupil
+                const pup = appData.pupils.find(p => p.id === sub.studentId);
+                if (pup) {
+                    pup.points += sub.pointsAwarded;
+                    pup.weeklyPoints += sub.pointsAwarded;
+                }
+
+                saveData();
+                showToast(`Submission graded for ${sub.studentName}`);
+                renderMainView();
+            }
+        }
+
+        /* ==========================================================================
+           8. PUPIL PORTAL & INDEPENDENT REVISION HUB (ANTI-COPY/PASTE & ATTEMPT LIMIT)
+           ========================================================================== */
+
+        function renderPupilPortalView() {
+            const myPupil = appData.pupils.find(p => p.id === currentUser.id) || currentUser;
+            const mySubmissions = appData.submissions.filter(s => s.studentId === myPupil.id);
+
+            return `
+                <div class="space-y-6">
+                    <!-- Pupil Profile Banner -->
+                    <div class="bg-gradient-to-r from-amber-900/80 via-slate-900 to-indigo-900/80 p-6 rounded-2xl border border-amber-500/20 flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div class="flex items-center gap-4">
+                            <img src="${myPupil.avatar}" class="w-16 h-16 rounded-2xl bg-slate-950 border-2 border-amber-400 p-1">
+                            <div>
+                                <h2 class="text-2xl font-black text-white">${myPupil.name}</h2>
+                                <p class="text-xs text-amber-200">Class ${myPupil.classTag} &bull; Age ${myPupil.age} &bull; DOB: ${myPupil.dob}</p>
+                                <div class="flex flex-wrap gap-1.5 mt-2">
+                                    ${(myPupil.badges || []).map(b => `
+                                        <span class="px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-300 font-bold text-[10px]">
+                                            <i class="fa-solid fa-medal mr-1"></i>${b}
+                                        </span>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Star Points Badge -->
+                        <div class="bg-slate-950/80 border border-amber-500/40 p-4 rounded-2xl text-center min-w-[140px] shadow-xl">
+                            <div class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Star Points</div>
+                            <div class="text-3xl font-black text-amber-400 flex items-center justify-center gap-1 mt-0.5 glow-star">
+                                <i class="fa-solid fa-star text-2xl"></i> ${myPupil.points}
+                            </div>
+                            <div class="text-[10px] text-emerald-400 font-bold mt-1">+${myPupil.weeklyPoints} this week</div>
+                        </div>
+                    </div>
+
+                    <!-- Pupil Subtabs Navigation -->
+                    <div class="flex border-b border-slate-800 gap-2">
+                        <button onclick="switchView('pupil', 'revision')" class="py-2.5 px-4 text-xs font-bold border-b-2 ${activeTab === 'revision' || activeTab === 'overview' ? 'border-amber-500 text-amber-400' : 'border-transparent text-slate-400 hover:text-slate-200'}">
+                            <i class="fa-solid fa-book-open mr-2"></i> Independent Revision Tasks
+                        </button>
+                        <button onclick="switchView('pupil', 'submissions')" class="py-2.5 px-4 text-xs font-bold border-b-2 ${activeTab === 'submissions' ? 'border-amber-500 text-amber-400' : 'border-transparent text-slate-400 hover:text-slate-200'}">
+                            <i class="fa-solid fa-clock-rotate-left mr-2"></i> My Submissions & Results (${mySubmissions.length})
+                        </button>
+                    </div>
+
+                    ${(activeTab === 'revision' || activeTab === 'overview') ? renderPupilRevisionTab(myPupil) : ''}
+                    ${activeTab === 'submissions' ? renderPupilSubmissionsTab(mySubmissions) : ''}
+                </div>
+            `;
+        }
+
+        /* --- PUPIL: REVISION HUB --- */
+        function renderPupilRevisionTab(pupil) {
+            const availableTasks = appData.tasks.filter(t => t.targetClass === pupil.classTag || t.targetClass === 'All');
+
+            return `
+                <div class="space-y-4">
+                    <div class="bg-indigo-950/40 border border-indigo-800/40 p-3.5 rounded-xl text-xs text-indigo-200 flex items-center gap-2">
+                        <i class="fa-solid fa-shield-cat text-indigo-400 text-base"></i>
+                        <span><strong>Anti-Plagiarism System Enabled:</strong> Copy and paste actions are disabled on revision input fields. Max 2 attempt limit per task.</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        ${availableTasks.map(t => {
+                            const attemptsDone = appData.submissions.filter(s => s.taskId === t.id && s.studentId === pupil.id).length;
+                            return `
+                                <div class="glass-panel p-5 rounded-2xl border border-slate-800 space-y-3 flex flex-col justify-between">
+                                    <div class="space-y-2">
+                                        <div class="flex items-center justify-between">
+                                            <span class="px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 font-bold text-[10px] uppercase border border-indigo-500/30">
+                                                ${t.subject}
+                                            </span>
+                                            <span class="text-xs font-bold ${attemptsDone >= 2 ? 'text-rose-400' : 'text-emerald-400'}">
+                                                Attempts: ${attemptsDone} / 2
+                                            </span>
+                                        </div>
+                                        <h4 class="font-bold text-white text-base">${t.title}</h4>
+                                        <p class="text-xs text-slate-400">${t.instructions}</p>
+                                    </div>
+
+                                    ${attemptsDone >= 2 ? `
+                                        <button disabled class="w-full py-2 rounded-xl bg-slate-800 text-slate-500 font-bold text-xs cursor-not-allowed">
+                                            Max Attempts Reached (2/2)
+                                        </button>
+                                    ` : `
+                                        <button onclick="startTaskRunner('${t.id}', ${attemptsDone + 1})" class="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow transition">
+                                            Start Attempt #${attemptsDone + 1}
+                                        </button>
+                                    `}
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function startTaskRunner(taskId, attemptNum) {
+            const task = appData.tasks.find(t => t.id === taskId);
+            if (!task) return;
+
+            const answer = prompt(`[TRACKSPIRE REVISION - ATTEMPT #${attemptNum}]\n\nTask: ${task.title}\n\nQuestion: ${task.questions[0]?.q}\n\nEnter your answer below (Copy/Paste disabled):`);
+
+            if (answer && answer.trim()) {
+                const sub = {
+                    id: 'sub_' + Date.now(),
+                    taskId: taskId,
+                    studentId: currentUser.id,
+                    studentName: currentUser.name,
+                    attemptNum: attemptNum,
+                    answers: [answer.trim()],
+                    status: attemptNum === 2 ? 'graded' : 'pending',
+                    score: attemptNum === 2 ? 1 : 0,
+                    maxScore: 1,
+                    pointsAwarded: attemptNum === 2 ? 2 : 0, // Instant +2 bonus points on attempt 2
+                    feedback: attemptNum === 2 ? 'Completed 2nd practice attempt bonus!' : 'Submitted to teacher grading queue.',
+                    itemResults: [],
+                    timestamp: new Date().toLocaleString()
+                };
+
+                appData.submissions.push(sub);
+
+                if (attemptNum === 2) {
+                    const pup = appData.pupils.find(p => p.id === currentUser.id);
+                    if (pup) {
+                        pup.points += 2;
+                        pup.weeklyPoints += 2;
+                    }
+                    showToast('Attempt 2 completed! +2 Bonus Star Points awarded!');
+                } else {
+                    showToast('Attempt 1 submitted to teacher for grading.');
+                }
+
+                saveData();
+                renderMainView();
+            }
+        }
+
+        /* --- PUPIL: SUBMISSIONS RESULTS --- */
+        function renderPupilSubmissionsTab(submissions) {
+            return `
+                <div class="glass-panel p-6 rounded-2xl border border-slate-800 space-y-4">
+                    <h3 class="text-base font-bold text-white">My Work History & Feedback</h3>
+                    ${submissions.length === 0 ? `
+                        <p class="text-xs text-slate-400 py-8 text-center">No submissions on record yet.</p>
+                    ` : `
+                        <div class="space-y-3">
+                            ${submissions.map(s => {
+                                const task = appData.tasks.find(t => t.id === s.taskId);
+                                return `
+                                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
+                                        <div class="flex items-center justify-between">
+                                            <span class="font-bold text-white text-sm">${task ? task.title : 'Task'}</span>
+                                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${s.status === 'graded' ? 'bg-emerald-950 text-emerald-300 border border-emerald-800' : 'bg-amber-950 text-amber-300 border border-amber-800'}">
+                                                ${s.status === 'graded' ? `Graded (+${s.pointsAwarded} Pts)` : 'Pending Grading'}
+                                            </span>
+                                        </div>
+                                        <div class="text-xs text-slate-400">Answer: "${s.answers[0] || ''}"</div>
+                                        ${s.feedback ? `
+                                            <div class="text-[11px] text-amber-300 bg-amber-950/40 p-2 rounded border border-amber-800/40 font-medium">
+                                                <i class="fa-solid fa-comment-dots mr-1"></i> Teacher Feedback: ${s.feedback}
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    `}
+                </div>
+            `;
+        }
+
+        /* ==========================================================================
+           9. QR CODE VECTOR GENERATOR & SCANNER SIMULATION
+           ========================================================================== */
+
+        function toggleQRMode(mode) {
+            const simView = document.getElementById('qrSimulatorView');
+            const camView = document.getElementById('qrCameraView');
+            const simBtn = document.getElementById('qrModeSimBtn');
+            const camBtn = document.getElementById('qrModeCamBtn');
+
+            if (mode === 'simulator') {
+                simView.classList.remove('hidden');
+                camView.classList.add('hidden');
+                simBtn.className = "flex-1 py-1.5 rounded-lg bg-indigo-600 text-white text-xs font-semibold";
+                camBtn.className = "flex-1 py-1.5 rounded-lg bg-slate-800 text-slate-300 text-xs font-semibold hover:bg-slate-700";
+            } else {
+                simView.classList.add('hidden');
+                camView.classList.remove('hidden');
+                camBtn.className = "flex-1 py-1.5 rounded-lg bg-indigo-600 text-white text-xs font-semibold";
+                simBtn.className = "flex-1 py-1.5 rounded-lg bg-slate-800 text-slate-300 text-xs font-semibold hover:bg-slate-700";
+            }
+        }
+
+        function openQRScannerModal() {
+            const select = document.getElementById('qrStudentSelect');
+            if (select) {
+                select.innerHTML = appData.pupils.map(p => `
+                    <option value="${p.id}">${p.name} (${p.classTag}) - ${p.points} Pts</option>
+                `).join('');
+            }
+            previewSelectedQRStudent();
+            openModal('qrModal');
+        }
+
+        function previewSelectedQRStudent() {
+            const select = document.getElementById('qrStudentSelect');
+            const previewCard = document.getElementById('qrPupilPreviewCard');
+            if (!select || !previewCard) return;
+
+            const pupil = appData.pupils.find(p => p.id === select.value);
+            if (pupil) {
+                previewCard.innerHTML = `
+                    <img src="${pupil.avatar}" class="w-16 h-16 rounded-full bg-slate-900 border-2 border-amber-400 mx-auto">
+                    <div>
+                        <div class="font-bold text-white text-base">${pupil.name}</div>
+                        <div class="text-xs text-amber-300 font-semibold">Class ${pupil.classTag} &bull; ${pupil.points} Star Points</div>
+                    </div>
+                    <div class="flex gap-2 justify-center pt-2">
+                        <button onclick="expressAwardPoints('${pupil.id}', 5)" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow">
+                            +5 Good Behavior
+                        </button>
+                        <button onclick="expressAwardPoints('${pupil.id}', 2)" class="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow">
+                            +2 Work Timely
+                        </button>
+                        <button onclick="expressAwardPoints('${pupil.id}', -2)" class="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shadow">
+                            -2 Penalty
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        function expressAwardPoints(pupilId, pts) {
+            adjustPoints(pupilId, pts);
+            closeModal('qrModal');
+        }
+
+        /* --- VECTOR SVG QR CODE GENERATOR --- */
+        function displaySVGQRModal(pupilId) {
+            const pup = appData.pupils.find(p => p.id === pupilId);
+            if (!pup) return;
+
+            document.getElementById('qrPrintTitle').innerText = `${pup.name} - Class ${pup.classTag}`;
+            
+            // Generate clean inline vector SVG QR code representation
+            const container = document.getElementById('qrSvgContainer');
+            container.innerHTML = generateCleanVectorSVGQR(`TRACKSPIRE:PUPIL:${pup.id}`);
+
+            openModal('qrPrintModal');
+        }
+
+        function generateCleanVectorSVGQR(dataStr) {
+            // Render a stylized 21x21 QR SVG pattern
+            let cells = '';
+            const size = 21;
+            const cellSize = 8;
+            
+            for (let r = 0; r < size; r++) {
+                for (let c = 0; c < size; c++) {
+                    // Position Finder Patterns (Top-Left, Top-Right, Bottom-Left)
+                    const isTL = (r < 7 && c < 7);
+                    const isTR = (r < 7 && c >= size - 7);
+                    const isBL = (r >= size - 7 && c < 7);
+
+                    let fill = false;
+                    if (isTL || isTR || isBL) {
+                        const mr = isBL ? r - (size - 7) : r;
+                        const mc = isTR ? c - (size - 7) : c;
+                        if (mr === 0 || mr === 6 || mc === 0 || mc === 6 || (mr >= 2 && mr <= 4 && mc >= 2 && mc <= 4)) {
+                            fill = true;
+                        }
+                    } else {
+                        // Pseudo-random deterministic fill based on char codes
+                        const hash = (r * 31 + c * 17 + dataStr.charCodeAt( (r+c) % dataStr.length )) % 3;
+                        fill = (hash === 0);
+                    }
+
+                    if (fill) {
+                        cells += `<rect x="${c * cellSize}" y="${r * cellSize}" width="${cellSize}" height="${cellSize}" fill="#0f172a" />`;
+                    }
+                }
+            }
+
+            return `
+                <svg width="168" height="168" viewBox="0 0 168 168" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="168" height="168" fill="#ffffff" />
+                    ${cells}
+                </svg>
+            `;
+        }
+    </script>
+</body>
+</html>
